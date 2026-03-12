@@ -212,20 +212,20 @@
 <!-- MAIN -->
 <div class="main" id="mainArea">
   <div class="main-tabs">
-    <button class="tab-btn active" onclick="switchTab(event,'library')">Library</button>
-    <button class="tab-btn" onclick="switchTab(event,'workshop')">Workshop</button>
+    <button class="tab-btn active" onclick="switchTab(event,'workshop')">Workshop</button>
+    <button class="tab-btn" onclick="switchTab(event,'library')">Library</button>
     <button class="tab-btn" onclick="switchTab(event,'gallery')">Gallery</button>
   </div>
 
   <!-- LIBRARY TAB -->
-  <div class="tab-panel active" id="tab-library">
+  <div class="tab-panel" id="tab-library">
     <div class="folder-filters" id="libFilters"></div>
     <input class="search-bar" id="searchBar" placeholder="Search prompts..." oninput="renderEntries()">
     <div class="entries" id="entriesList"></div>
   </div>
 
   <!-- WORKSHOP TAB -->
-  <div class="tab-panel" id="tab-workshop">
+  <div class="tab-panel active" id="tab-workshop">
     <div class="workshop-card">
       <div class="ws-header">
         <span class="ws-title">Workshop</span>
@@ -344,10 +344,18 @@ function switchTab(e,tab){
 function renderFilterChips(containerId){
   const container=document.getElementById(containerId);
   container.innerHTML=[
-    `<div class="f-chip ${currentFolder==='__all__'?'active':''}" onclick="selectFolder('__all__')">All</div>`,
-    ...data.folders.map(f=>`<div class="f-chip ${currentFolder===f?'active':''}" onclick="selectFolder('${ea(f)}')">${eh(f)}</div>`)
+    `<div class="f-chip ${currentFolder==='__all__'?'active':''}" data-folder="__all__">All</div>`,
+    ...data.folders.map(f=>`<div class="f-chip ${currentFolder===f?'active':''}" data-folder="${eh(f)}">${eh(f)}</div>`)
   ].join('');
 }
+
+// Event delegation for filter chips
+['libFilters','galFilters'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){
+    const chip=e.target.closest('.f-chip');
+    if(chip)selectFolder(chip.dataset.folder);
+  });
+});
 
 function renderAllFilters(){
   renderFilterChips('libFilters');
@@ -359,12 +367,12 @@ function renderFolders(){
   const list=document.getElementById('folderList');
   list.innerHTML=data.folders.map(f=>{
     const cnt=data.entries.filter(e=>e.folder===f).length;
-    return `<div class="folder-item ${currentFolder===f?'active':''}" onclick="selectFolder('${ea(f)}')">
+    return `<div class="folder-item ${currentFolder===f?'active':''}" data-folder="${eh(f)}">
       <span class="folder-name">📂 ${eh(f)}</span>
       <span class="folder-count">${cnt}</span>
       <div class="folder-actions">
-        <button class="icon-btn" onclick="event.stopPropagation();openRenameFolder('${ea(f)}')">✎</button>
-        <button class="icon-btn danger" onclick="event.stopPropagation();deleteFolder('${ea(f)}')">✕</button>
+        <button class="icon-btn folder-rename-btn" data-folder="${eh(f)}" title="Rename">✎</button>
+        <button class="icon-btn danger folder-delete-btn" data-folder="${eh(f)}" title="Delete">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -373,6 +381,16 @@ function renderFolders(){
   syncWsFolderSelect();
   renderAllFilters();
 }
+
+// Event delegation for folder list — avoids broken inline onclick with special chars
+document.getElementById('folderList').addEventListener('click',function(e){
+  const renameBtn=e.target.closest('.folder-rename-btn');
+  const deleteBtn=e.target.closest('.folder-delete-btn');
+  const item=e.target.closest('.folder-item');
+  if(renameBtn){e.stopPropagation();openRenameFolder(renameBtn.dataset.folder);return;}
+  if(deleteBtn){e.stopPropagation();deleteFolder(deleteBtn.dataset.folder);return;}
+  if(item){selectFolder(item.dataset.folder);}
+});
 
 function syncWsFolderSelect(){
   const sel=document.getElementById('wsFolderSelect');
@@ -756,7 +774,7 @@ document.addEventListener('keydown',e=>{
 });
 document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLightbox();});
 
-loadData();renderFolders();renderEntries();syncWsFolderSelect();
+loadData();renderFolders();renderEntries();renderAllFilters();syncWsFolderSelect();
 </script>
 </body>
 </html>
