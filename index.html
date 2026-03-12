@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prompt Library</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230c0c0c'/><text y='.9em' font-size='80' x='10'>📚</text></svg>">
+<script src="https://apis.google.com/js/api.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Cormorant+Garamond:wght@400;600;700&display=swap');
   :root{
@@ -17,19 +18,17 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:grid;grid-template-columns:var(--sw) 1fr;grid-template-rows:auto 1fr;transition:grid-template-columns 0.25s;}
   body.sc{--sw:0px;}
-
-  /* TOPBAR */
   .topbar{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
   .topbar-left{display:flex;align-items:center;gap:0.75rem;}
   .logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--accent);letter-spacing:0.05em;}
   .version{font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;}
-  .topbar-right{display:flex;gap:0.5rem;align-items:center;}
-  .autosave{font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;}
-  .autosave.saved{color:var(--success);}
+  .topbar-right{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;}
+  .sync-status{font-size:0.6rem;letter-spacing:0.1em;padding:0.25rem 0.6rem;border-radius:10px;border:1px solid var(--border);}
+  .sync-status.connected{color:var(--success);border-color:var(--success);}
+  .sync-status.syncing{color:var(--accent);border-color:var(--accent-dim);}
+  .sync-status.disconnected{color:var(--muted);}
   .sb-toggle{background:none;border:1px solid var(--border);color:var(--muted);border-radius:4px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:color 0.15s,border-color 0.15s;}
   .sb-toggle:hover{color:var(--accent);border-color:var(--accent-dim);}
-
-  /* SIDEBAR */
   .sidebar{background:var(--surface);border-right:1px solid var(--border);overflow:hidden;height:calc(100vh - 53px);position:sticky;top:53px;width:var(--sw);transition:width 0.25s;}
   body.sc .sidebar{border-right:none;}
   .sidebar-inner{width:240px;padding:1.25rem 0;overflow-y:auto;height:100%;}
@@ -49,8 +48,6 @@
   .new-folder-form.open{display:flex;gap:0.4rem;}
   .mini-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.35rem 0.5rem;outline:none;}
   .mini-input:focus{border-color:var(--accent-dim);}
-
-  /* MAIN */
   .main{padding:1.5rem;overflow-y:auto;height:calc(100vh - 53px);}
   .main-tabs{display:flex;gap:0.25rem;margin-bottom:1.25rem;border-bottom:1px solid var(--border);}
   .tab-btn{background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.5rem 1rem;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color 0.15s;}
@@ -58,14 +55,10 @@
   .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
-
-  /* FOLDER FILTER CHIPS — shown in Library & Gallery */
   .folder-filters{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1rem;}
   .f-chip{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:0.25rem 0.75rem;font-size:0.65rem;cursor:pointer;letter-spacing:0.08em;white-space:nowrap;transition:all 0.15s;}
   .f-chip:hover{border-color:var(--accent-dim);color:var(--text);}
   .f-chip.active{background:var(--accent-glow);color:var(--accent);border-color:var(--accent-dim);}
-
-  /* WORKSHOP */
   .workshop-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.25rem;margin-bottom:1.25rem;}
   .ws-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;}
   .ws-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--accent);}
@@ -78,7 +71,6 @@
   .prompt-btns{position:absolute;top:0.4rem;right:0.4rem;display:flex;flex-direction:column;gap:0.25rem;}
   .prompt-icon-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:3px;width:22px;height:22px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color 0.15s,border-color 0.15s;}
   .prompt-icon-btn:hover{color:var(--accent);border-color:var(--accent-dim);}
-
   .img-upload-area{border:1px dashed var(--border);border-radius:4px;padding:1rem;margin-bottom:0.75rem;transition:border-color 0.2s,background 0.2s;}
   .img-upload-area.dragover{border-color:var(--accent);background:var(--accent-glow);}
   .img-upload-controls{display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap;align-items:center;}
@@ -89,12 +81,9 @@
   .img-thumb .rm{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.75);border:none;color:#ff6b6b;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2;}
   .img-thumb:hover .rm{display:flex;}
   input[type="file"]{display:none;}
-
   .form-bottom{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
   .folder-select{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.45rem 0.75rem;outline:none;cursor:pointer;}
   .folder-select:focus{border-color:var(--accent-dim);}
-
-  /* BUTTONS */
   .btn{background:var(--accent);color:#0c0c0c;border:none;border-radius:4px;padding:0.5rem 1.25rem;font-family:'DM Mono',monospace;font-size:0.7rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.15s;}
   .btn:hover{opacity:0.85;}
   .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted);padding:0.5rem 1rem;}
@@ -103,13 +92,9 @@
   .btn-sm{padding:0.3rem 0.65rem;font-size:0.65rem;}
   .btn-perchance{background:#2a1f4e;border:1px solid #5a3f9e;color:#b89eff;font-size:0.65rem;padding:0.3rem 0.65rem;border-radius:4px;font-family:'DM Mono',monospace;letter-spacing:0.08em;cursor:pointer;transition:background 0.15s;}
   .btn-perchance:hover{background:#3d2d6e;}
-
-  /* SEARCH */
   .search-bar{background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.5rem 0.75rem;outline:none;width:100%;margin-bottom:1rem;transition:border-color 0.2s;}
   .search-bar:focus{border-color:var(--accent-dim);}
   .search-bar::placeholder{color:var(--muted);}
-
-  /* ENTRIES */
   .entries{display:flex;flex-direction:column;gap:0.5rem;}
   .entry{background:var(--surface);border:1px solid var(--border);border-radius:6px;transition:border-color 0.2s;animation:fadeUp 0.25s ease;overflow:hidden;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
@@ -117,14 +102,12 @@
   .entry.editing{border-color:var(--accent-dim);background:var(--surface2);}
   .entry.expanded{border-color:var(--accent-dim);}
   .entry.highlight{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow);}
-
   .entry-collapsed{display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:0.6rem 1rem;gap:0.75rem;cursor:pointer;user-select:none;}
   .entry-preview{font-size:0.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .entry-preview-folder{font-size:0.6rem;color:var(--accent-dim);margin-right:0.4rem;}
   .entry-thumb-strip{display:flex;gap:0.25rem;flex-shrink:0;}
   .entry-thumb-strip img{width:32px;height:32px;object-fit:cover;border-radius:2px;border:1px solid var(--border);}
   .entry-collapsed-actions{display:flex;gap:0.3rem;flex-shrink:0;}
-
   .entry-expanded-body{padding:0 1rem 1rem;display:none;}
   .entry.expanded .entry-expanded-body{display:block;}
   .entry-prompt-full{font-size:0.77rem;line-height:1.65;color:var(--text);white-space:pre-wrap;word-break:break-word;margin-bottom:0.75rem;padding:0.75rem;background:var(--bg);border-radius:4px;border:1px solid var(--border);}
@@ -133,12 +116,9 @@
   .entry-images-full img:hover{transform:scale(1.02);border-color:var(--accent-dim);}
   .entry-expanded-actions{display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;}
   .entry-meta{font-size:0.6rem;color:var(--muted);margin-left:auto;}
-
   .edit-textarea{width:100%;background:var(--bg);border:1px solid var(--accent-dim);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.77rem;padding:0.6rem 2.5rem 0.6rem 0.6rem;resize:vertical;min-height:120px;outline:none;line-height:1.65;margin-bottom:0.5rem;}
   .edit-img-area{border:1px dashed var(--border2);border-radius:4px;padding:0.75rem;margin-bottom:0.5rem;}
   .empty{text-align:center;color:var(--muted);font-size:0.75rem;padding:4rem;letter-spacing:0.1em;border:1px dashed var(--border);border-radius:6px;}
-
-  /* GALLERY */
   .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.75rem;}
   .gallery-item{position:relative;aspect-ratio:1;border-radius:5px;overflow:hidden;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s,border-color 0.15s;}
   .gallery-item:hover{transform:scale(1.02);border-color:var(--accent-dim);}
@@ -146,13 +126,11 @@
   .gallery-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:0.5rem 0.4rem 0.3rem;opacity:0;transition:opacity 0.2s;}
   .gallery-item:hover .gallery-overlay{opacity:1;}
   .gallery-folder-tag{font-size:0.55rem;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;}
-
-  /* LIGHTBOX */
   .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:0.75rem;}
   .lightbox.active{display:flex;}
   .lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
   .lightbox img{max-width:85vw;max-height:72vh;object-fit:contain;border-radius:4px;display:block;}
-  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.15);color:var(--text);border-radius:50%;width:44px;height:44px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s,background 0.2s;z-index:2;}
+  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.15);color:var(--text);border-radius:50%;width:44px;height:44px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;z-index:2;}
   .lightbox-img-wrap:hover .lb-nav{opacity:1;}
   .lb-nav:hover{background:rgba(201,168,76,0.3);}
   .lb-nav.prev{left:-58px;}
@@ -161,41 +139,37 @@
   .lb-counter{font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;}
   .lb-caption{font-size:0.7rem;color:var(--muted);max-width:70vw;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .lb-actions{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;justify-content:center;}
-
-  /* MODALS */
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:center;justify-content:center;}
   .modal-overlay.active{display:flex;}
   .modal{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:1.5rem;min-width:300px;max-width:500px;width:90vw;}
   .modal h3{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--accent);margin-bottom:1rem;}
   .modal-actions{display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem;}
-
-  /* TOAST */
   .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(15px);background:var(--accent);color:#0c0c0c;padding:0.45rem 1.25rem;border-radius:20px;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;opacity:0;transition:all 0.25s;pointer-events:none;z-index:9999;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body id="appBody">
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-left">
-    <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle folders">☰</button>
+    <button class="sb-toggle" onclick="toggleSidebar()">☰</button>
     <span class="logo">Prompt Library</span>
     <span class="version">personal</span>
   </div>
   <div class="topbar-right">
-    <span class="autosave" id="autosaveStatus">● saved</span>
+    <span class="sync-status disconnected" id="syncStatus">● not connected</span>
+    <button class="btn btn-ghost btn-sm" id="driveBtn" onclick="handleDriveAuth()">Connect Drive</button>
+    <button class="btn btn-ghost btn-sm" id="syncBtn" onclick="syncToDrive()" style="display:none">↑ Sync</button>
     <button class="btn btn-ghost btn-sm" onclick="exportData()">Export</button>
     <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import<input type="file" accept=".json" onchange="importData(this)"></label>
   </div>
 </div>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sidebar-inner">
     <div class="sb-section">
       <div class="sb-label">Folders</div>
-      <div class="folder-item active" id="folder-all" onclick="selectFolder('__all__')">
+      <div class="folder-item active" id="folder-all">
         <span class="folder-name">📁 All</span>
         <span class="folder-count" id="count-all">0</span>
       </div>
@@ -209,22 +183,14 @@
   </div>
 </div>
 
-<!-- MAIN -->
-<div class="main" id="mainArea">
+<div class="main">
   <div class="main-tabs">
     <button class="tab-btn active" onclick="switchTab(event,'workshop')">Workshop</button>
     <button class="tab-btn" onclick="switchTab(event,'library')">Library</button>
     <button class="tab-btn" onclick="switchTab(event,'gallery')">Gallery</button>
   </div>
 
-  <!-- LIBRARY TAB -->
-  <div class="tab-panel" id="tab-library">
-    <div class="folder-filters" id="libFilters"></div>
-    <input class="search-bar" id="searchBar" placeholder="Search prompts..." oninput="renderEntries()">
-    <div class="entries" id="entriesList"></div>
-  </div>
-
-  <!-- WORKSHOP TAB -->
+  <!-- WORKSHOP -->
   <div class="tab-panel active" id="tab-workshop">
     <div class="workshop-card">
       <div class="ws-header">
@@ -245,9 +211,7 @@
       </div>
       <div class="img-upload-area" id="wsDropZone">
         <div class="img-upload-controls">
-          <label class="btn btn-ghost btn-sm" style="cursor:pointer">
-            + Images<input type="file" id="wsImgInput" accept="image/*" multiple onchange="handleFiles(this.files)">
-          </label>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer">+ Images<input type="file" id="wsImgInput" accept="image/*" multiple onchange="handleFiles(this.files)"></label>
           <button class="btn btn-ghost btn-sm" onclick="pasteImgClipboard()">📋 Paste Image</button>
           <span class="img-upload-hint">drag & drop • Ctrl+V</span>
         </div>
@@ -262,7 +226,14 @@
     </div>
   </div>
 
-  <!-- GALLERY TAB -->
+  <!-- LIBRARY -->
+  <div class="tab-panel" id="tab-library">
+    <div class="folder-filters" id="libFilters"></div>
+    <input class="search-bar" id="searchBar" placeholder="Search prompts..." oninput="renderEntries()">
+    <div class="entries" id="entriesList"></div>
+  </div>
+
+  <!-- GALLERY -->
   <div class="tab-panel" id="tab-gallery">
     <div class="folder-filters" id="galFilters"></div>
     <div class="gallery-grid" id="galleryGrid"></div>
@@ -273,9 +244,9 @@
 <div class="lightbox" id="lightbox">
   <button class="lb-close" onclick="closeLightbox()">×</button>
   <div class="lightbox-img-wrap">
-    <button class="lb-nav prev" id="lbPrev" onclick="lbNav(-1)">‹</button>
+    <button class="lb-nav prev" onclick="lbNav(-1)">‹</button>
     <img id="lbImg" src="" alt="">
-    <button class="lb-nav next" id="lbNext" onclick="lbNav(1)">›</button>
+    <button class="lb-nav next" onclick="lbNav(1)">›</button>
   </div>
   <div class="lb-counter" id="lbCounter"></div>
   <div class="lb-caption" id="lbCaption"></div>
@@ -309,6 +280,11 @@
 <div class="toast" id="toast"></div>
 
 <script>
+const CLIENT_ID='890560027641-blck3fkkbg7ofbi41pks6mgrb7tuuldg.apps.googleusercontent.com';
+const SCOPES='https://www.googleapis.com/auth/drive.appdata';
+const DRIVE_FILE_NAME='prompt-library-data.json';
+const IMG_MAX_W=1200,IMG_MAX_H=1200,IMG_QUALITY=0.82;
+
 let data={folders:['General'],entries:[],lastFolder:'General'};
 let currentFolder='__all__';
 let wsImgs=[];
@@ -317,20 +293,181 @@ let editingId=null;
 let expandedId=null;
 let lbImages=[];
 let lbIndex=0;
+let driveFileId=null;
+let tokenClient=null;
+let gapiReady=false;
+let gisReady=false;
 
-// PERSIST
-function loadData(){
-  try{const s=localStorage.getItem('promptLibV7');if(s)data=JSON.parse(s);if(!data.folders)data.folders=['General'];if(!data.entries)data.entries=[];if(!data.lastFolder)data.lastFolder=data.folders[0]||'General';}catch(e){}
+// ─── IMAGE COMPRESSION ───────────────────────────────────────────
+function compressImage(file){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>IMG_MAX_W||h>IMG_MAX_H){
+          const ratio=Math.min(IMG_MAX_W/w,IMG_MAX_H/h);
+          w=Math.round(w*ratio);h=Math.round(h*ratio);
+        }
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',IMG_QUALITY));
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
-function saveData(){localStorage.setItem('promptLibV7',JSON.stringify(data));setAutosave('saved');}
-function setAutosave(s){const el=document.getElementById('autosaveStatus');el.textContent=s==='saved'?'● saved':'● saving...';el.className='autosave '+(s==='saved'?'saved':'');}
-window.addEventListener('beforeunload',saveData);
-window.addEventListener('visibilitychange',()=>{if(document.hidden)saveData();});
 
-// SIDEBAR
+// ─── LOCAL STORAGE (fallback) ─────────────────────────────────────
+function loadLocal(){
+  try{
+    // migrate from old keys
+    for(const key of['promptLibV7','promptLibV6','promptLibV5']){
+      const s=localStorage.getItem(key);
+      if(s){data=JSON.parse(s);break;}
+    }
+    if(!data.folders)data.folders=['General'];
+    if(!data.entries)data.entries=[];
+    if(!data.lastFolder)data.lastFolder=data.folders[0]||'General';
+  }catch(e){}
+}
+function saveLocal(){
+  try{localStorage.setItem('promptLibV8',JSON.stringify(data));}catch(e){
+    showToast('Local storage full — connect Drive!');
+  }
+}
+
+// ─── GOOGLE DRIVE ─────────────────────────────────────────────────
+function initGapi(){
+  gapi.load('client',async()=>{
+    await gapi.client.init({discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
+    gapiReady=true;
+    maybeAutoConnect();
+  });
+}
+
+function initGis(){
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,
+    scope:SCOPES,
+    callback:(resp)=>{
+      if(resp.error){setSyncStatus('disconnected');return;}
+      setSyncStatus('connected');
+      document.getElementById('driveBtn').textContent='Disconnect';
+      document.getElementById('syncBtn').style.display='';
+      loadFromDrive();
+    }
+  });
+  gisReady=true;
+  maybeAutoConnect();
+}
+
+function maybeAutoConnect(){
+  if(!gapiReady||!gisReady)return;
+  // silent token refresh if previously connected
+  if(localStorage.getItem('driveConnected')==='1'){
+    tokenClient.requestAccessToken({prompt:''});
+  }
+}
+
+function handleDriveAuth(){
+  const btn=document.getElementById('driveBtn');
+  if(btn.textContent==='Disconnect'){
+    google.accounts.oauth2.revoke(gapi.client.getToken()?.access_token,()=>{});
+    gapi.client.setToken(null);
+    localStorage.removeItem('driveConnected');
+    setSyncStatus('disconnected');
+    btn.textContent='Connect Drive';
+    document.getElementById('syncBtn').style.display='none';
+    return;
+  }
+  if(!gapiReady||!gisReady){showToast('Still loading, try again...');return;}
+  tokenClient.requestAccessToken({prompt:'consent'});
+  localStorage.setItem('driveConnected','1');
+}
+
+function setSyncStatus(s){
+  const el=document.getElementById('syncStatus');
+  if(s==='connected'){el.textContent='● drive connected';el.className='sync-status connected';}
+  else if(s==='syncing'){el.textContent='↑ syncing...';el.className='sync-status syncing';}
+  else{el.textContent='● not connected';el.className='sync-status disconnected';}
+}
+
+async function findDriveFile(){
+  const res=await gapi.client.drive.files.list({
+    spaces:'appDataFolder',
+    q:`name='${DRIVE_FILE_NAME}'`,
+    fields:'files(id,name)'
+  });
+  return res.result.files?.[0]?.id||null;
+}
+
+async function loadFromDrive(){
+  try{
+    setSyncStatus('syncing');
+    driveFileId=await findDriveFile();
+    if(!driveFileId){setSyncStatus('connected');return;}
+    const res=await gapi.client.drive.files.get({fileId:driveFileId,alt:'media'});
+    const imported=typeof res.result==='string'?JSON.parse(res.result):res.result;
+    if(imported.entries){
+      data=imported;
+      if(!data.folders)data.folders=['General'];
+      if(!data.entries)data.entries=[];
+    }
+    setSyncStatus('connected');
+    renderAll();
+    showToast('Loaded from Drive!');
+  }catch(e){setSyncStatus('connected');console.error(e);}
+}
+
+async function syncToDrive(){
+  try{
+    setSyncStatus('syncing');
+    const body=JSON.stringify(data);
+    const blob=new Blob([body],{type:'application/json'});
+
+    if(!driveFileId)driveFileId=await findDriveFile();
+
+    if(driveFileId){
+      await gapi.client.request({
+        path:`/upload/drive/v3/files/${driveFileId}`,
+        method:'PATCH',
+        params:{uploadType:'media'},
+        body
+      });
+    }else{
+      const meta={name:DRIVE_FILE_NAME,parents:['appDataFolder']};
+      const form=new FormData();
+      form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+      form.append('file',blob);
+      const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+        method:'POST',
+        headers:{Authorization:`Bearer ${gapi.client.getToken().access_token}`},
+        body:form
+      });
+      const j=await res.json();
+      driveFileId=j.id;
+    }
+    setSyncStatus('connected');
+    showToast('Synced to Drive!');
+  }catch(e){setSyncStatus('connected');showToast('Sync failed, try again');console.error(e);}
+}
+
+// auto-sync after save
+function saveData(){
+  saveLocal();
+  if(gapi.client?.getToken?.()?.access_token){
+    clearTimeout(window._syncTimer);
+    window._syncTimer=setTimeout(syncToDrive,2000);
+  }
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────────────
 function toggleSidebar(){document.getElementById('appBody').classList.toggle('sc');}
 
-// TABS
 function switchTab(e,tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -340,16 +477,18 @@ function switchTab(e,tab){
   if(tab==='workshop')syncWsFolderSelect();
 }
 
-// FOLDER FILTER CHIPS — synced across sidebar + library + gallery
+function renderAll(){renderFolders();renderEntries();renderAllFilters();syncWsFolderSelect();}
+
+// ─── FOLDER FILTERS ───────────────────────────────────────────────
 function renderFilterChips(containerId){
-  const container=document.getElementById(containerId);
-  container.innerHTML=[
+  const c=document.getElementById(containerId);
+  c.innerHTML=[
     `<div class="f-chip ${currentFolder==='__all__'?'active':''}" data-folder="__all__">All</div>`,
     ...data.folders.map(f=>`<div class="f-chip ${currentFolder===f?'active':''}" data-folder="${eh(f)}">${eh(f)}</div>`)
   ].join('');
 }
+function renderAllFilters(){renderFilterChips('libFilters');renderFilterChips('galFilters');}
 
-// Event delegation for filter chips
 ['libFilters','galFilters'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){
     const chip=e.target.closest('.f-chip');
@@ -357,12 +496,7 @@ function renderFilterChips(containerId){
   });
 });
 
-function renderAllFilters(){
-  renderFilterChips('libFilters');
-  renderFilterChips('galFilters');
-}
-
-// FOLDERS
+// ─── FOLDERS ──────────────────────────────────────────────────────
 function renderFolders(){
   const list=document.getElementById('folderList');
   list.innerHTML=data.folders.map(f=>{
@@ -371,8 +505,8 @@ function renderFolders(){
       <span class="folder-name">📂 ${eh(f)}</span>
       <span class="folder-count">${cnt}</span>
       <div class="folder-actions">
-        <button class="icon-btn folder-rename-btn" data-folder="${eh(f)}" title="Rename">✎</button>
-        <button class="icon-btn danger folder-delete-btn" data-folder="${eh(f)}" title="Delete">✕</button>
+        <button class="icon-btn folder-rename-btn" data-folder="${eh(f)}">✎</button>
+        <button class="icon-btn danger folder-delete-btn" data-folder="${eh(f)}">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -382,35 +516,41 @@ function renderFolders(){
   renderAllFilters();
 }
 
-// Event delegation for folder list — avoids broken inline onclick with special chars
+document.getElementById('folder-all').addEventListener('click',()=>selectFolder('__all__'));
+
 document.getElementById('folderList').addEventListener('click',function(e){
-  const renameBtn=e.target.closest('.folder-rename-btn');
-  const deleteBtn=e.target.closest('.folder-delete-btn');
+  const rb=e.target.closest('.folder-rename-btn');
+  const db=e.target.closest('.folder-delete-btn');
   const item=e.target.closest('.folder-item');
-  if(renameBtn){e.stopPropagation();openRenameFolder(renameBtn.dataset.folder);return;}
-  if(deleteBtn){e.stopPropagation();deleteFolder(deleteBtn.dataset.folder);return;}
-  if(item){selectFolder(item.dataset.folder);}
+  if(rb){e.stopPropagation();openRenameFolder(rb.dataset.folder);return;}
+  if(db){e.stopPropagation();deleteFolder(db.dataset.folder);return;}
+  if(item)selectFolder(item.dataset.folder);
 });
 
 function syncWsFolderSelect(){
   const sel=document.getElementById('wsFolderSelect');
   const cur=sel.value||data.lastFolder;
-  sel.innerHTML=data.folders.map(f=>`<option value="${ea(f)}" ${f===cur?'selected':''}>${eh(f)}</option>`).join('');
+  sel.innerHTML=data.folders.map(f=>`<option value="${eh(f)}" ${f===cur?'selected':''}>${eh(f)}</option>`).join('');
 }
 
 function selectFolder(f){
   currentFolder=f;
-  if(f!=='__all__'){data.lastFolder=f;saveData();}
+  if(f!=='__all__'){data.lastFolder=f;}
   renderFolders();
   const active=document.querySelector('.tab-panel.active')?.id;
   if(active==='tab-gallery')renderGallery();
-  else if(active==='tab-library')renderEntries();
+  else renderEntries();
 }
 
-function toggleNewFolderForm(){const form=document.getElementById('newFolderForm');form.classList.toggle('open');if(form.classList.contains('open'))document.getElementById('newFolderInput').focus();}
+function toggleNewFolderForm(){
+  const form=document.getElementById('newFolderForm');
+  form.classList.toggle('open');
+  if(form.classList.contains('open'))document.getElementById('newFolderInput').focus();
+}
 
 function createFolder(){
-  const inp=document.getElementById('newFolderInput');const name=inp.value.trim();
+  const inp=document.getElementById('newFolderInput');
+  const name=inp.value.trim();
   if(!name||data.folders.includes(name))return;
   data.folders.push(name);data.lastFolder=name;inp.value='';
   document.getElementById('newFolderForm').classList.remove('open');
@@ -418,7 +558,8 @@ function createFolder(){
 }
 
 function openRenameFolder(name){
-  renamingFolder=name;document.getElementById('renameFolderInput').value=name;
+  renamingFolder=name;
+  document.getElementById('renameFolderInput').value=name;
   document.getElementById('renameFolderModal').classList.add('active');
   document.getElementById('renameFolderInput').focus();
 }
@@ -446,12 +587,13 @@ function deleteFolder(name){
 
 function closeModal(id){document.getElementById(id).classList.remove('active');}
 
-// WORKSHOP IMAGES
-function handleFiles(files){
-  Array.from(files).forEach(file=>{
-    if(!file.type.startsWith('image/'))return;
-    const r=new FileReader();r.onload=e=>{wsImgs.push(e.target.result);renderWsThumbs();};r.readAsDataURL(file);
-  });
+// ─── IMAGES ───────────────────────────────────────────────────────
+async function handleFiles(files){
+  for(const file of Array.from(files)){
+    if(!file.type.startsWith('image/'))continue;
+    const compressed=await compressImage(file);
+    wsImgs.push(compressed);renderWsThumbs();
+  }
 }
 
 async function pasteImgClipboard(target,entryId){
@@ -459,12 +601,17 @@ async function pasteImgClipboard(target,entryId){
     const items=await navigator.clipboard.read();let found=false;
     for(const item of items){
       const t=item.types.find(t=>t.startsWith('image/'));
-      if(t){found=true;const blob=await item.getType(t);const r=new FileReader();
-        r.onload=e=>{
-          if(target==='edit'&&entryId){const en=data.entries.find(e2=>e2.id===entryId);if(!en._editImgs)en._editImgs=[...(en.images||[])];en._editImgs.push(e.target.result);renderEditImgs(entryId);}
-          else{wsImgs.push(e.target.result);renderWsThumbs();}
-          showToast('Image pasted!');
-        };r.readAsDataURL(blob);
+      if(t){
+        found=true;
+        const blob=await item.getType(t);
+        const file=new File([blob],'paste.jpg',{type:blob.type});
+        const compressed=await compressImage(file);
+        if(target==='edit'&&entryId){
+          const en=data.entries.find(e=>e.id===entryId);
+          if(!en._editImgs)en._editImgs=[...(en.images||[])];
+          en._editImgs.push(compressed);renderEditImgs(entryId);
+        }else{wsImgs.push(compressed);renderWsThumbs();}
+        showToast('Image pasted!');
       }
     }
     if(!found)showToast('No image in clipboard');
@@ -473,32 +620,30 @@ async function pasteImgClipboard(target,entryId){
 
 function renderWsThumbs(){
   document.getElementById('wsImgThumbs').innerHTML=wsImgs.map((img,i)=>`
-    <div class="img-thumb"><img src="${img}" onclick="openLbSingle('${img}','',null)"><button class="rm" onclick="wsImgs.splice(${i},1);renderWsThumbs()">×</button></div>`).join('');
+    <div class="img-thumb"><img src="${img}"><button class="rm" onclick="wsImgs.splice(${i},1);renderWsThumbs()">×</button></div>`).join('');
 }
 
-// Drag/drop
 const wsDZ=document.getElementById('wsDropZone');
 wsDZ.addEventListener('dragover',e=>{e.preventDefault();wsDZ.classList.add('dragover');});
 wsDZ.addEventListener('dragleave',()=>wsDZ.classList.remove('dragover'));
 wsDZ.addEventListener('drop',e=>{e.preventDefault();wsDZ.classList.remove('dragover');handleFiles(e.dataTransfer.files);});
 
-// Global Ctrl+V paste image
-document.addEventListener('paste',e=>{
+document.addEventListener('paste',async e=>{
   const items=e.clipboardData?.items;if(!items)return;
   for(const item of items){
     if(item.type.startsWith('image/')){
-      const r=new FileReader();
-      r.onload=ev=>{
-        if(editingId){const en=data.entries.find(e2=>e2.id===editingId);if(en){if(!en._editImgs)en._editImgs=[...(en.images||[])];en._editImgs.push(ev.target.result);renderEditImgs(editingId);}}
-        else{wsImgs.push(ev.target.result);renderWsThumbs();}
-        showToast('Image pasted!');
-      };
-      r.readAsDataURL(item.getAsFile());
+      const file=item.getAsFile();
+      const compressed=await compressImage(file);
+      if(editingId){
+        const en=data.entries.find(e2=>e2.id===editingId);
+        if(en){if(!en._editImgs)en._editImgs=[...(en.images||[])];en._editImgs.push(compressed);renderEditImgs(editingId);}
+      }else{wsImgs.push(compressed);renderWsThumbs();}
+      showToast('Image pasted!');
     }
   }
 });
 
-// PROMPT HELPERS
+// ─── PROMPT HELPERS ───────────────────────────────────────────────
 function pasteToEl(id){navigator.clipboard.readText().then(t=>{document.getElementById(id).value=t;showToast('Pasted!');}).catch(()=>showToast('Allow clipboard access'));}
 function copyFromEl(id){const v=document.getElementById(id).value;if(v)navigator.clipboard.writeText(v).then(()=>showToast('Copied!'));}
 function clearEl(id){document.getElementById(id).value='';}
@@ -509,7 +654,7 @@ function wsClear(){
   document.getElementById('wsImgInput').value='';
 }
 
-// LOAD FROM ENTRY
+// ─── LOAD FROM ENTRY ──────────────────────────────────────────────
 function openPickEntryModal(){
   document.getElementById('pickSearch').value='';renderPickList();
   document.getElementById('pickEntryModal').classList.add('active');
@@ -520,13 +665,12 @@ function renderPickList(){
   const filtered=data.entries.filter(e=>e.prompt.toLowerCase().includes(q)||(e.folder||'').toLowerCase().includes(q)).slice(0,40);
   document.getElementById('pickList').innerHTML=!filtered.length
     ?'<div style="color:var(--muted);font-size:0.75rem;padding:1rem;text-align:center">No entries found</div>'
-    :filtered.map(e=>`
-      <div style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.73rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all 0.15s"
-        onmouseover="this.style.borderColor='var(--accent-dim)';this.style.color='var(--text)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'"
-        onclick="loadEntryToWs(${e.id})">
-        <span style="font-size:0.58rem;color:var(--accent-dim);margin-right:0.4rem">${eh(e.folder||'')}</span>${eh(e.prompt.substring(0,120))}${e.prompt.length>120?'…':''}
-      </div>`).join('');
+    :filtered.map(e=>`<div style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.73rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:all 0.15s"
+      onmouseover="this.style.borderColor='var(--accent-dim)';this.style.color='var(--text)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'"
+      onclick="loadEntryToWs(${e.id})">
+      <span style="font-size:0.58rem;color:var(--accent-dim);margin-right:0.4rem">${eh(e.folder||'')}</span>${eh(e.prompt.substring(0,120))}${e.prompt.length>120?'…':''}
+    </div>`).join('');
 }
 
 function loadEntryToWs(id){
@@ -535,18 +679,16 @@ function loadEntryToWs(id){
   wsImgs=[...(entry.images||[])];renderWsThumbs();
   document.getElementById('wsFolderSelect').value=entry.folder||data.lastFolder;
   document.getElementById('wsSourceLabel').textContent='from: '+entry.prompt.substring(0,40)+(entry.prompt.length>40?'…':'');
-  closeModal('pickEntryModal');
-  showToast('Loaded into workshop!');
+  closeModal('pickEntryModal');showToast('Loaded into workshop!');
 }
 
-// SAVE ENTRY
+// ─── SAVE ENTRY ───────────────────────────────────────────────────
 function saveEntry(){
   const prompt=document.getElementById('wsPrompt').value.trim();if(!prompt)return;
   const folder=document.getElementById('wsFolderSelect').value||data.lastFolder;
   data.lastFolder=folder;
   data.entries.unshift({id:Date.now(),prompt,images:[...wsImgs],folder,date:new Date().toLocaleDateString()});
-  wsClear();
-  saveData();renderFolders();renderEntries();showToast('Saved to library!');
+  wsClear();saveData();renderFolders();renderEntries();showToast('Saved to library!');
 }
 
 function wsToPerchance(){
@@ -555,9 +697,9 @@ function wsToPerchance(){
   navigator.clipboard.writeText(prompt).then(()=>{showToast('Copied! Paste in Perchance');setTimeout(()=>window.open('https://perchance.org/ai-text-to-image-generator','_blank'),400);}).catch(()=>window.open('https://perchance.org/ai-text-to-image-generator','_blank'));
 }
 
-// ENTRIES
+// ─── ENTRIES ──────────────────────────────────────────────────────
 function toggleExpand(id){if(editingId===id)return;expandedId=expandedId===id?null:id;renderEntries();}
-function deleteEntry(id){data.entries=data.entries.filter(e=>e.id!==id);saveData();renderFolders();renderEntries();}
+function deleteEntry(id){if(!confirm('Delete this entry?'))return;data.entries=data.entries.filter(e=>e.id!==id);saveData();renderFolders();renderEntries();}
 function startEdit(id){editingId=id;expandedId=id;renderEntries();}
 
 function cancelEdit(){
@@ -576,16 +718,20 @@ function confirmEdit(id){
   saveData();renderFolders();renderEntries();showToast('Updated!');
 }
 
-function addEditImg(id,files){
-  const en=data.entries.find(e=>e.id===id);if(!en._editImgs)en._editImgs=[...(en.images||[])];
-  Array.from(files).forEach(f=>{const r=new FileReader();r.onload=ev=>{en._editImgs.push(ev.target.result);renderEditImgs(id);};r.readAsDataURL(f);});
+async function addEditImg(id,files){
+  const en=data.entries.find(e=>e.id===id);
+  if(!en._editImgs)en._editImgs=[...(en.images||[])];
+  for(const f of Array.from(files)){
+    const compressed=await compressImage(f);
+    en._editImgs.push(compressed);renderEditImgs(id);
+  }
 }
 function removeEditImg(id,i){const en=data.entries.find(e=>e.id===id);if(!en._editImgs)en._editImgs=[...(en.images||[])];en._editImgs.splice(i,1);renderEditImgs(id);}
 function renderEditImgs(id){
   const en=data.entries.find(e=>e.id===id);
   const imgs=en._editImgs!==undefined?en._editImgs:(en.images||[]);
   const c=document.getElementById('editImgs_'+id);if(!c)return;
-  c.innerHTML=imgs.map((img,i)=>`<div class="img-thumb"><img src="${img}" onclick="openLbSingle('${img}','',null)"><button class="rm" onclick="removeEditImg(${id},${i})">×</button></div>`).join('');
+  c.innerHTML=imgs.map((img,i)=>`<div class="img-thumb"><img src="${img}"><button class="rm" onclick="removeEditImg(${id},${i})">×</button></div>`).join('');
 }
 
 function pasteToEditTA(id){navigator.clipboard.readText().then(t=>{document.getElementById('editTA_'+id).value=t;showToast('Pasted!');}).catch(()=>showToast('Allow clipboard access'));}
@@ -597,7 +743,7 @@ function loadToWorkshop(id){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-workshop').classList.add('active');
-  document.querySelectorAll('.tab-btn')[1].classList.add('active');
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
   syncWsFolderSelect();
   document.querySelector('.main').scrollTo(0,0);
 }
@@ -622,15 +768,15 @@ function renderEntries(){
     if(isEd){
       const editImgs=e._editImgs!==undefined?e._editImgs:(e.images||[]);
       return `<div class="entry editing expanded">
-        <div class="entry-collapsed" style="border-bottom:1px solid var(--border)">
+        <div class="entry-collapsed" style="border-bottom:1px solid var(--border);cursor:default">
           <span class="entry-preview"><span class="entry-preview-folder">${eh(e.folder||'')}</span>${eh(preview)}</span>
         </div>
         <div class="entry-expanded-body" style="display:block;padding:1rem">
           <div style="position:relative;margin-bottom:0.5rem">
             <textarea class="edit-textarea" id="editTA_${e.id}">${eh(e.prompt)}</textarea>
             <div class="prompt-btns">
-              <button class="prompt-icon-btn" onclick="pasteToEditTA(${e.id})" title="Paste">📋</button>
-              <button class="prompt-icon-btn" onclick="copyEditTA(${e.id})" title="Copy">⎘</button>
+              <button class="prompt-icon-btn" onclick="pasteToEditTA(${e.id})">📋</button>
+              <button class="prompt-icon-btn" onclick="copyEditTA(${e.id})">⎘</button>
             </div>
           </div>
           <div class="edit-img-area">
@@ -639,13 +785,13 @@ function renderEntries(){
               <button class="btn btn-ghost btn-sm" style="font-size:0.6rem" onclick="pasteImgClipboard('edit',${e.id})">📋 Paste</button>
             </div>
             <div class="img-thumbnails" id="editImgs_${e.id}">
-              ${editImgs.map((img,i)=>`<div class="img-thumb"><img src="${img}" onclick="openLbSingle('${img}','',null)"><button class="rm" onclick="removeEditImg(${e.id},${i})">×</button></div>`).join('')}
+              ${editImgs.map((img,i)=>`<div class="img-thumb"><img src="${img}"><button class="rm" onclick="removeEditImg(${e.id},${i})">×</button></div>`).join('')}
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
             <span style="font-size:0.6rem;color:var(--muted)">Folder:</span>
             <select class="folder-select" id="editFolder_${e.id}" style="font-size:0.65rem;padding:0.3rem 0.5rem">
-              ${data.folders.map(f=>`<option value="${ea(f)}" ${f===e.folder?'selected':''}>${eh(f)}</option>`).join('')}
+              ${data.folders.map(f=>`<option value="${eh(f)}" ${f===e.folder?'selected':''}>${eh(f)}</option>`).join('')}
             </select>
             <button class="btn btn-sm" onclick="confirmEdit(${e.id})">Save</button>
             <button class="btn btn-ghost btn-sm" onclick="cancelEdit()">Cancel</button>
@@ -674,14 +820,14 @@ function renderEntries(){
           <button class="btn-perchance" onclick="openPerchance(${e.id})">🎲 Perchance</button>
           <button class="btn btn-ghost btn-sm" onclick="startEdit(${e.id})">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Del</button>
-          <span class="entry-meta">${e.date}</span>
+          <span class="entry-meta">${e.date||''}</span>
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-// GALLERY
+// ─── GALLERY ──────────────────────────────────────────────────────
 function renderGallery(){
   const allImgs=[];
   data.entries.forEach(e=>{
@@ -697,7 +843,7 @@ function renderGallery(){
     </div>`).join('');
 }
 
-// LIGHTBOX
+// ─── LIGHTBOX ─────────────────────────────────────────────────────
 function openLbEntry(entryId,startIdx){
   const en=data.entries.find(e=>e.id===entryId);if(!en)return;
   lbImages=(en.images||[]).filter(Boolean).map(img=>({src:img,prompt:en.prompt,entryId}));
@@ -712,8 +858,8 @@ function showLightbox(){
   document.getElementById('lbImg').src=item.src;
   document.getElementById('lbCaption').textContent=item.prompt?item.prompt.substring(0,100)+(item.prompt.length>100?'…':''):'';
   document.getElementById('lbCounter').textContent=lbImages.length>1?`${lbIndex+1} / ${lbImages.length}`:'';
-  document.getElementById('lbPrev').style.display=lbImages.length>1?'flex':'none';
-  document.getElementById('lbNext').style.display=lbImages.length>1?'flex':'none';
+  document.querySelector('.lb-nav.prev').style.display=lbImages.length>1?'flex':'none';
+  document.querySelector('.lb-nav.next').style.display=lbImages.length>1?'flex':'none';
   const p=item.prompt||'';const eid=item.entryId||null;
   document.getElementById('lbActions').innerHTML=`
     ${p?`<button class="btn btn-ghost btn-sm" onclick="lbCopyPrompt()">⎘ Copy Prompt</button>`:''}
@@ -725,25 +871,27 @@ function showLightbox(){
 function lbNav(dir){lbIndex=(lbIndex+dir+lbImages.length)%lbImages.length;showLightbox();}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('active');}
 function lbCopyPrompt(){const p=lbImages[lbIndex]?.prompt;if(p)navigator.clipboard.writeText(p).then(()=>showToast('Copied!'));}
-function lbPerchance(){const p=lbImages[lbIndex]?.prompt;if(p){navigator.clipboard.writeText(p).then(()=>{showToast('Copied! Paste in Perchance');setTimeout(()=>window.open('https://perchance.org/ai-text-to-image-generator','_blank'),400);});}else window.open('https://perchance.org/ai-text-to-image-generator','_blank');}
+function lbPerchance(){const p=lbImages[lbIndex]?.prompt;if(p){navigator.clipboard.writeText(p).then(()=>{showToast('Copied! Paste in Perchance');setTimeout(()=>window.open('https://perchance.org/ai-text-to-image-generator','_blank'),400);});}}
 
 function goToEntry(id){
   closeLightbox();
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-library').classList.add('active');
-  document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  document.querySelectorAll('.tab-btn')[1].classList.add('active');
   currentFolder='__all__';renderFolders();expandedId=id;renderEntries();
   setTimeout(()=>{
-    const all=data.entries;
-    const idx=all.findIndex(e=>e.id===id);
+    const idx=data.entries.findIndex(e=>e.id===id);
     const els=document.querySelectorAll('.entry');
     if(els[idx]){els[idx].scrollIntoView({behavior:'smooth',block:'center'});els[idx].classList.add('highlight');setTimeout(()=>els[idx].classList.remove('highlight'),1500);}
   },100);
 }
 
-// EXPORT/IMPORT
-function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prompt-library-backup.json';a.click();showToast('Exported!');}
+// ─── EXPORT / IMPORT ─────────────────────────────────────────────
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prompt-library-backup.json';a.click();showToast('Exported!');
+}
 function importData(input){
   const file=input.files[0];if(!file)return;
   const r=new FileReader();
@@ -756,15 +904,15 @@ function importData(input){
       data.entries=[...data.entries,...ne];
       const ef=new Set(data.folders);
       (imp.folders||[]).forEach(f=>{if(!ef.has(f))data.folders.push(f);});
-      saveData();renderFolders();renderEntries();showToast(`Imported ${ne.length} entries!`);
+      saveData();renderAll();showToast(`Imported ${ne.length} entries!`);
     }catch{showToast('Import failed');}
   };
   r.readAsText(file);
 }
 
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+// ─── UTILS ───────────────────────────────────────────────────────
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 function eh(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function ea(s){return String(s).replace(/'/g,"\\'").replace(/\n/g,' ');}
 
 document.addEventListener('keydown',e=>{
   const lb=document.getElementById('lightbox');
@@ -774,7 +922,15 @@ document.addEventListener('keydown',e=>{
 });
 document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLightbox();});
 
-loadData();renderFolders();renderEntries();renderAllFilters();syncWsFolderSelect();
+// ─── INIT ─────────────────────────────────────────────────────────
+loadLocal();renderAll();
+
+// Load Google APIs
+window.gapiLoaded=()=>initGapi();
+window.gisLoaded=()=>initGis();
 </script>
+
+<script src="https://apis.google.com/js/api.js?onload=gapiLoaded" async defer></script>
+<script src="https://accounts.google.com/gsi/client?onload=gisLoaded" async defer></script>
 </body>
 </html>
