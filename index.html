@@ -5,17 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prompt Library</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Cormorant+Garamond:wght@400;600;700&display=swap');
 
   :root {
-    --bg: #0e0e0e;
-    --surface: #1a1a1a;
-    --border: #2e2e2e;
+    --bg: #0c0c0c;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --border: #2a2a2a;
+    --border2: #383838;
     --accent: #c9a84c;
-    --accent2: #7c6b3a;
-    --text: #e8e0d0;
-    --muted: #6b6560;
-    --danger: #8b3a3a;
+    --accent-dim: #7c6b3a;
+    --accent-glow: rgba(201,168,76,0.08);
+    --text: #e2d9c8;
+    --muted: #5e5a54;
+    --danger: #9b4444;
+    --success: #4a7c59;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,39 +29,166 @@
     color: var(--text);
     font-family: 'DM Mono', monospace;
     min-height: 100vh;
-    padding: 2rem;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: auto 1fr;
   }
 
-  h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
+  /* TOP BAR */
+  .topbar {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-left { display: flex; align-items: baseline; gap: 1rem; }
+
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
     color: var(--accent);
     letter-spacing: 0.05em;
-    margin-bottom: 0.25rem;
   }
 
-  .subtitle {
+  .version {
+    font-size: 0.6rem;
     color: var(--muted);
-    font-size: 0.75rem;
-    margin-bottom: 2rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
   }
 
-  .add-card {
+  .topbar-right { display: flex; gap: 0.5rem; align-items: center; }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.25rem 0;
+    overflow-y: auto;
+    height: calc(100vh - 57px);
+    position: sticky;
+    top: 57px;
+  }
+
+  .sidebar-section {
+    padding: 0 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    padding: 0 0.25rem;
+  }
+
+  .folder-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--text);
+    transition: background 0.15s;
+    gap: 0.5rem;
+  }
+
+  .folder-item:hover { background: var(--surface2); }
+  .folder-item.active { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent-dim); }
+
+  .folder-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .folder-count { font-size: 0.6rem; color: var(--muted); }
+
+  .folder-actions { display: none; gap: 0.25rem; }
+  .folder-item:hover .folder-actions { display: flex; }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.25rem;
+    border-radius: 3px;
+    transition: color 0.15s;
+  }
+
+  .icon-btn:hover { color: var(--accent); }
+  .icon-btn.danger:hover { color: var(--danger); }
+
+  .new-folder-form {
+    display: none;
+    margin-top: 0.5rem;
+  }
+
+  .new-folder-form.open { display: flex; gap: 0.4rem; }
+
+  .mini-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+    outline: none;
+  }
+
+  .mini-input:focus { border-color: var(--accent-dim); }
+
+  /* MAIN */
+  .main {
+    padding: 1.5rem;
+    overflow-y: auto;
+    height: calc(100vh - 57px);
+  }
+
+  .main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .main-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+  }
+
+  /* ADD FORM */
+  .add-form {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    border-radius: 6px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
   }
 
-  .add-card h2 {
-    font-size: 0.7rem;
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    align-items: start;
+  }
+
+  .form-label {
+    font-size: 0.6rem;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: var(--accent);
-    margin-bottom: 1rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
   }
 
   textarea {
@@ -67,67 +198,81 @@
     border-radius: 4px;
     color: var(--text);
     font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     padding: 0.75rem;
     resize: vertical;
-    min-height: 80px;
+    min-height: 90px;
     outline: none;
     transition: border-color 0.2s;
-    margin-bottom: 1rem;
+    line-height: 1.6;
   }
 
-  textarea:focus { border-color: var(--accent2); }
+  textarea:focus { border-color: var(--accent-dim); }
   textarea::placeholder { color: var(--muted); }
 
-  .image-drop-row {
+  .folder-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    cursor: pointer;
+    min-width: 140px;
+  }
+
+  .folder-select:focus { border-color: var(--accent-dim); }
+
+  .image-row {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
   }
 
   .img-slot {
     border: 1px dashed var(--border);
     border-radius: 4px;
-    height: 120px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.2s;
-    background: var(--bg);
+    transition: border-color 0.2s, background 0.2s;
   }
 
-  .img-slot:hover { border-color: var(--accent2); }
+  .img-slot:hover { border-color: var(--accent-dim); background: var(--accent-glow); }
 
   .img-slot span {
     color: var(--muted);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-align: center;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     pointer-events: none;
+    line-height: 1.8;
   }
 
   .img-slot img {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     object-fit: cover;
     position: absolute;
     top: 0; left: 0;
   }
 
-  .img-slot .remove-img {
+  .img-slot .rm-img {
     position: absolute;
     top: 4px; right: 4px;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.75);
     border: none;
     color: #ff6b6b;
     border-radius: 50%;
-    width: 20px; height: 20px;
-    font-size: 12px;
+    width: 18px; height: 18px;
+    font-size: 11px;
     cursor: pointer;
     display: none;
     align-items: center;
@@ -135,59 +280,53 @@
     z-index: 2;
   }
 
-  .img-slot:hover .remove-img { display: flex; }
-
+  .img-slot:hover .rm-img { display: flex; }
   input[type="file"] { display: none; }
 
+  .form-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+  /* BUTTONS */
   .btn {
     background: var(--accent);
-    color: #0e0e0e;
+    color: #0c0c0c;
     border: none;
     border-radius: 4px;
-    padding: 0.6rem 1.5rem;
+    padding: 0.55rem 1.25rem;
     font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: opacity 0.15s;
   }
 
   .btn:hover { opacity: 0.85; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 0.55rem 1rem;
+  }
+
+  .btn-ghost:hover { border-color: var(--accent-dim); color: var(--accent); opacity: 1; }
 
   .btn-danger {
     background: transparent;
     border: 1px solid var(--danger);
     color: var(--danger);
-    padding: 0.3rem 0.75rem;
+    padding: 0.35rem 0.75rem;
     font-size: 0.65rem;
   }
 
-  /* Library */
-  .library-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
-  .library-header h2 {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-  }
-
-  .count-badge {
-    background: var(--accent2);
-    color: var(--accent);
-    border-radius: 20px;
-    padding: 0.1rem 0.6rem;
+  .btn-sm {
+    padding: 0.3rem 0.65rem;
     font-size: 0.65rem;
   }
 
+  /* SEARCH */
   .search-bar {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -198,90 +337,115 @@
     padding: 0.5rem 0.75rem;
     outline: none;
     width: 100%;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
     transition: border-color 0.2s;
   }
 
-  .search-bar:focus { border-color: var(--accent2); }
+  .search-bar:focus { border-color: var(--accent-dim); }
   .search-bar::placeholder { color: var(--muted); }
 
-  .entries { display: flex; flex-direction: column; gap: 0.75rem; }
+  /* ENTRIES */
+  .entries { display: flex; flex-direction: column; gap: 0.6rem; }
 
   .entry {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;
+    padding: 1rem 1.25rem;
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 1rem;
-    padding: 1rem 1.25rem;
     transition: border-color 0.2s;
-    animation: fadeIn 0.3s ease;
+    animation: fadeUp 0.25s ease;
   }
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: none; }
+  }
 
-  .entry:hover { border-color: var(--accent2); }
+  .entry:hover { border-color: var(--border2); }
 
   .entry-prompt {
-    font-size: 0.78rem;
-    line-height: 1.6;
+    font-size: 0.77rem;
+    line-height: 1.65;
     color: var(--text);
     white-space: pre-wrap;
     word-break: break-word;
     cursor: pointer;
-    user-select: all;
   }
 
   .entry-prompt:hover { color: var(--accent); }
+
+  .entry-folder-tag {
+    display: inline-block;
+    font-size: 0.6rem;
+    color: var(--accent-dim);
+    border: 1px solid var(--accent-dim);
+    border-radius: 10px;
+    padding: 0.1rem 0.5rem;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.08em;
+  }
 
   .entry-right {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.5rem;
-    min-width: 200px;
+    min-width: 180px;
   }
 
-  .entry-images {
-    display: flex;
-    gap: 0.4rem;
-  }
+  .entry-images { display: flex; gap: 0.35rem; }
 
   .entry-images img {
-    width: 60px;
-    height: 60px;
+    width: 55px; height: 55px;
     object-fit: cover;
     border-radius: 3px;
     border: 1px solid var(--border);
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.15s, border-color 0.15s;
   }
 
-  .entry-images img:hover { transform: scale(1.05); }
+  .entry-images img:hover { transform: scale(1.06); border-color: var(--accent-dim); }
 
-  .entry-meta {
-    font-size: 0.6rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
+  .entry-meta { font-size: 0.6rem; color: var(--muted); }
+  .entry-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end; }
+
+  /* EDIT MODE */
+  .entry.editing { border-color: var(--accent-dim); background: var(--surface2); }
+
+  .edit-textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.77rem;
+    padding: 0.6rem;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    line-height: 1.65;
   }
-
-  .entry-actions { display: flex; gap: 0.4rem; }
 
   .empty {
     text-align: center;
     color: var(--muted);
     font-size: 0.75rem;
-    padding: 3rem;
+    padding: 4rem;
     letter-spacing: 0.1em;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
   }
 
-  /* Lightbox */
+  /* LIGHTBOX */
   .lightbox {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.92);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -304,93 +468,300 @@
     color: var(--text);
     font-size: 2rem;
     cursor: pointer;
-    z-index: 1001;
   }
 
-  /* Copy toast */
+  /* TOAST */
   .toast {
     position: fixed;
     bottom: 2rem;
     left: 50%;
-    transform: translateX(-50%) translateY(20px);
+    transform: translateX(-50%) translateY(15px);
     background: var(--accent);
-    color: #0e0e0e;
-    padding: 0.5rem 1.25rem;
+    color: #0c0c0c;
+    padding: 0.45rem 1.25rem;
     border-radius: 20px;
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     opacity: 0;
-    transition: all 0.3s;
+    transition: all 0.25s;
     pointer-events: none;
+    z-index: 999;
   }
 
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  @media (max-width: 600px) {
-    .image-drop-row { grid-template-columns: 1fr 1fr 1fr; }
-    .entry { grid-template-columns: 1fr; }
-    .entry-right { align-items: flex-start; }
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
   }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    min-width: 300px;
+    max-width: 400px;
+  }
+
+  .modal h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+
+  /* AUTO-SAVE indicator */
+  .autosave {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .autosave.saved { color: var(--success); }
 </style>
 </head>
 <body>
 
-<h1>Prompt Library</h1>
-<p class="subtitle">Paste · Store · Reference</p>
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="logo">Prompt Library</span>
+    <span class="version">personal</span>
+  </div>
+  <div class="topbar-right">
+    <span class="autosave" id="autosaveStatus">●  saved</span>
+    <button class="btn btn-ghost btn-sm" onclick="exportData()">Export</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import<input type="file" accept=".json" onchange="importData(this)"></label>
+  </div>
+</div>
 
-<!-- Add Entry -->
-<div class="add-card">
-  <h2>+ New Entry</h2>
-  <textarea id="promptInput" placeholder="Paste your prompt here..."></textarea>
-  <div class="image-drop-row">
-    <div class="img-slot" id="slot0" onclick="triggerFile(0)">
-      <span>Image 1<br>click to add</span>
-      <button class="remove-img" onclick="removeImg(event,0)">×</button>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Folders</div>
+
+    <div class="folder-item active" id="folder-all" onclick="selectFolder('__all__')">
+      <span class="folder-name">📁 All Prompts</span>
+      <span class="folder-count" id="count-all">0</span>
     </div>
-    <div class="img-slot" id="slot1" onclick="triggerFile(1)">
-      <span>Image 2<br>click to add</span>
-      <button class="remove-img" onclick="removeImg(event,1)">×</button>
+
+    <div id="folderList"></div>
+
+    <div class="new-folder-form" id="newFolderForm">
+      <input class="mini-input" id="newFolderInput" placeholder="Folder name..." onkeydown="if(event.key==='Enter')createFolder()">
+      <button class="btn btn-sm" onclick="createFolder()">+</button>
     </div>
-    <div class="img-slot" id="slot2" onclick="triggerFile(2)">
-      <span>Image 3<br>click to add</span>
-      <button class="remove-img" onclick="removeImg(event,2)">×</button>
+
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:0.5rem;font-size:0.65rem" onclick="toggleNewFolderForm()">+ New Folder</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="add-form">
+    <div class="form-label">New Entry</div>
+    <div class="form-row">
+      <textarea id="promptInput" placeholder="Paste your prompt here..."></textarea>
+      <div>
+        <div class="form-label">Location</div>
+        <select class="folder-select" id="folderSelect"></select>
+      </div>
+    </div>
+    <div class="image-row">
+      <div class="img-slot" id="slot0" onclick="triggerFile(0)">
+        <span>Image 1<br>click</span>
+        <button class="rm-img" onclick="removeImg(event,0)">×</button>
+      </div>
+      <div class="img-slot" id="slot1" onclick="triggerFile(1)">
+        <span>Image 2<br>click</span>
+        <button class="rm-img" onclick="removeImg(event,1)">×</button>
+      </div>
+      <div class="img-slot" id="slot2" onclick="triggerFile(2)">
+        <span>Image 3<br>click</span>
+        <button class="rm-img" onclick="removeImg(event,2)">×</button>
+      </div>
+    </div>
+    <input type="file" id="fi0" accept="image/*" onchange="handleFile(0,this)">
+    <input type="file" id="fi1" accept="image/*" onchange="handleFile(1,this)">
+    <input type="file" id="fi2" accept="image/*" onchange="handleFile(2,this)">
+    <div class="form-actions">
+      <button class="btn" onclick="saveEntry()">Save Entry</button>
+      <span style="font-size:0.65rem;color:var(--muted)">click prompt to copy</span>
     </div>
   </div>
-  <input type="file" id="fileInput0" accept="image/*" onchange="handleFile(0,this)">
-  <input type="file" id="fileInput1" accept="image/*" onchange="handleFile(1,this)">
-  <input type="file" id="fileInput2" accept="image/*" onchange="handleFile(2,this)">
-  <button class="btn" onclick="saveEntry()">Save to Library</button>
+
+  <input class="search-bar" id="searchBar" placeholder="Search prompts..." oninput="renderEntries()">
+  <div class="entries" id="entriesList"></div>
 </div>
 
-<!-- Library -->
-<div class="library-header">
-  <h2>Library <span class="count-badge" id="countBadge">0</span></h2>
-  <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
-</div>
-<input class="search-bar" id="searchBar" placeholder="Search prompts..." oninput="renderEntries()">
-<div class="entries" id="entriesList"></div>
-
-<!-- Lightbox -->
+<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <button class="lightbox-close">×</button>
   <img id="lightboxImg" src="" alt="">
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast">Copied!</div>
+<!-- RENAME FOLDER MODAL -->
+<div class="modal-overlay" id="renameFolderModal">
+  <div class="modal">
+    <h3>Rename Folder</h3>
+    <input class="mini-input" id="renameFolderInput" style="width:100%" placeholder="New name...">
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('renameFolderModal')">Cancel</button>
+      <button class="btn btn-sm" onclick="confirmRenameFolder()">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-  let entries = JSON.parse(localStorage.getItem('promptLib') || '[]');
+  // STATE
+  let data = { folders: ['General'], entries: [], lastFolder: 'General' };
+  let currentFolder = '__all__';
   let imgData = [null, null, null];
+  let renamingFolder = null;
+  let editingId = null;
 
-  function save() {
-    localStorage.setItem('promptLib', JSON.stringify(entries));
+  // PERSISTENCE
+  function loadData() {
+    try {
+      const saved = localStorage.getItem('promptLibV2');
+      if (saved) data = JSON.parse(saved);
+      if (!data.folders) data.folders = ['General'];
+      if (!data.entries) data.entries = [];
+      if (!data.lastFolder) data.lastFolder = data.folders[0] || 'General';
+    } catch(e) {}
   }
 
-  function triggerFile(i) {
-    document.getElementById('fileInput' + i).click();
+  function saveData() {
+    localStorage.setItem('promptLibV2', JSON.stringify(data));
+    setAutosave('saved');
   }
+
+  function setAutosave(state) {
+    const el = document.getElementById('autosaveStatus');
+    el.textContent = state === 'saved' ? '●  saved' : '●  saving...';
+    el.className = 'autosave ' + (state === 'saved' ? 'saved' : '');
+  }
+
+  // AUTO-SAVE on tab close
+  window.addEventListener('beforeunload', () => saveData());
+  window.addEventListener('visibilitychange', () => { if (document.hidden) saveData(); });
+
+  // FOLDERS
+  function renderFolders() {
+    const list = document.getElementById('folderList');
+    list.innerHTML = data.folders.map(f => {
+      const count = data.entries.filter(e => e.folder === f).length;
+      return `
+        <div class="folder-item ${currentFolder === f ? 'active' : ''}" onclick="selectFolder('${escAttr(f)}')">
+          <span class="folder-name">📂 ${escHtml(f)}</span>
+          <span class="folder-count">${count}</span>
+          <div class="folder-actions">
+            <button class="icon-btn" onclick="event.stopPropagation();openRenameFolder('${escAttr(f)}')" title="Rename">✎</button>
+            <button class="icon-btn danger" onclick="event.stopPropagation();deleteFolder('${escAttr(f)}')" title="Delete">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Update all count
+    document.getElementById('count-all').textContent = data.entries.length;
+
+    // Update folder select
+    const sel = document.getElementById('folderSelect');
+    const current = sel.value || data.lastFolder;
+    sel.innerHTML = data.folders.map(f => `<option value="${escAttr(f)}" ${f === current ? 'selected' : ''}>${escHtml(f)}</option>`).join('');
+
+    // Highlight all
+    document.getElementById('folder-all').className = 'folder-item' + (currentFolder === '__all__' ? ' active' : '');
+  }
+
+  function selectFolder(f) {
+    currentFolder = f;
+    if (f !== '__all__') {
+      data.lastFolder = f;
+      document.getElementById('folderSelect').value = f;
+      saveData();
+    }
+    renderFolders();
+    renderEntries();
+  }
+
+  function toggleNewFolderForm() {
+    const form = document.getElementById('newFolderForm');
+    form.classList.toggle('open');
+    if (form.classList.contains('open')) document.getElementById('newFolderInput').focus();
+  }
+
+  function createFolder() {
+    const input = document.getElementById('newFolderInput');
+    const name = input.value.trim();
+    if (!name || data.folders.includes(name)) return;
+    data.folders.push(name);
+    data.lastFolder = name;
+    input.value = '';
+    document.getElementById('newFolderForm').classList.remove('open');
+    saveData();
+    renderFolders();
+    selectFolder(name);
+    showToast('Folder created');
+  }
+
+  function openRenameFolder(name) {
+    renamingFolder = name;
+    document.getElementById('renameFolderInput').value = name;
+    document.getElementById('renameFolderModal').classList.add('active');
+    document.getElementById('renameFolderInput').focus();
+  }
+
+  function confirmRenameFolder() {
+    const newName = document.getElementById('renameFolderInput').value.trim();
+    if (!newName || newName === renamingFolder || data.folders.includes(newName)) return;
+    data.folders = data.folders.map(f => f === renamingFolder ? newName : f);
+    data.entries = data.entries.map(e => e.folder === renamingFolder ? {...e, folder: newName} : e);
+    if (data.lastFolder === renamingFolder) data.lastFolder = newName;
+    if (currentFolder === renamingFolder) currentFolder = newName;
+    renamingFolder = null;
+    closeModal('renameFolderModal');
+    saveData();
+    renderFolders();
+    renderEntries();
+    showToast('Folder renamed');
+  }
+
+  function deleteFolder(name) {
+    if (!confirm(`Delete folder "${name}"? Entries will move to General.`)) return;
+    data.folders = data.folders.filter(f => f !== name);
+    if (!data.folders.includes('General')) data.folders.unshift('General');
+    data.entries = data.entries.map(e => e.folder === name ? {...e, folder: 'General'} : e);
+    if (data.lastFolder === name) data.lastFolder = 'General';
+    if (currentFolder === name) currentFolder = '__all__';
+    saveData();
+    renderFolders();
+    renderEntries();
+    showToast('Folder deleted');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
+
+  // IMAGES
+  function triggerFile(i) { document.getElementById('fi' + i).click(); }
 
   function handleFile(i, input) {
     const file = input.files[0];
@@ -400,11 +771,7 @@
       imgData[i] = e.target.result;
       const slot = document.getElementById('slot' + i);
       let img = slot.querySelector('img');
-      if (!img) {
-        img = document.createElement('img');
-        slot.appendChild(img);
-        slot.querySelector('span').style.display = 'none';
-      }
+      if (!img) { img = document.createElement('img'); slot.appendChild(img); slot.querySelector('span').style.display = 'none'; }
       img.src = imgData[i];
     };
     reader.readAsDataURL(file);
@@ -417,20 +784,16 @@
     const img = slot.querySelector('img');
     if (img) img.remove();
     slot.querySelector('span').style.display = '';
-    document.getElementById('fileInput' + i).value = '';
+    document.getElementById('fi' + i).value = '';
   }
 
+  // ENTRIES
   function saveEntry() {
     const prompt = document.getElementById('promptInput').value.trim();
     if (!prompt) return;
-    entries.unshift({
-      id: Date.now(),
-      prompt,
-      images: [...imgData],
-      date: new Date().toLocaleDateString()
-    });
-    save();
-    // Reset
+    const folder = document.getElementById('folderSelect').value || data.lastFolder;
+    data.lastFolder = folder;
+    data.entries.unshift({ id: Date.now(), prompt, images: [...imgData], folder, date: new Date().toLocaleDateString() });
     document.getElementById('promptInput').value = '';
     imgData = [null, null, null];
     for (let i = 0; i < 3; i++) {
@@ -438,36 +801,144 @@
       const img = slot.querySelector('img');
       if (img) img.remove();
       slot.querySelector('span').style.display = '';
-      document.getElementById('fileInput' + i).value = '';
+      document.getElementById('fi' + i).value = '';
     }
+    saveData();
+    renderFolders();
     renderEntries();
     showToast('Saved!');
   }
 
   function deleteEntry(id) {
-    entries = entries.filter(e => e.id !== id);
-    save();
+    data.entries = data.entries.filter(e => e.id !== id);
+    saveData();
+    renderFolders();
     renderEntries();
   }
 
-  function clearAll() {
-    if (!confirm('Delete all entries?')) return;
-    entries = [];
-    save();
+  function startEdit(id) {
+    editingId = id;
     renderEntries();
   }
 
-  function copyPrompt(text) {
-    navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+  function cancelEdit() {
+    editingId = null;
+    renderEntries();
   }
 
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 1800);
+  function confirmEdit(id) {
+    const val = document.getElementById('editTA_' + id).value.trim();
+    const folder = document.getElementById('editFolder_' + id).value;
+    if (!val) return;
+    data.entries = data.entries.map(e => e.id === id ? {...e, prompt: val, folder} : e);
+    editingId = null;
+    saveData();
+    renderFolders();
+    renderEntries();
+    showToast('Updated!');
   }
 
+  function renderEntries() {
+    const q = document.getElementById('searchBar').value.toLowerCase();
+    let filtered = data.entries.filter(e => {
+      const inFolder = currentFolder === '__all__' || e.folder === currentFolder;
+      const matchQ = e.prompt.toLowerCase().includes(q);
+      return inFolder && matchQ;
+    });
+
+    const list = document.getElementById('entriesList');
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty">No entries here yet.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(e => {
+      if (editingId === e.id) {
+        return `
+          <div class="entry editing">
+            <div>
+              <textarea class="edit-textarea" id="editTA_${e.id}">${escHtml(e.prompt)}</textarea>
+              <div style="margin-top:0.5rem;display:flex;gap:0.5rem;align-items:center">
+                <span style="font-size:0.6rem;color:var(--muted)">Folder:</span>
+                <select class="folder-select" id="editFolder_${e.id}" style="font-size:0.65rem;padding:0.3rem 0.5rem">
+                  ${data.folders.map(f => `<option value="${escAttr(f)}" ${f === e.folder ? 'selected' : ''}>${escHtml(f)}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div class="entry-right">
+              <div class="entry-images">
+                ${(e.images||[]).filter(Boolean).map(img => `<img src="${img}" onclick="openLightbox('${img}')">`).join('')}
+              </div>
+              <div class="entry-actions">
+                <button class="btn btn-sm" onclick="confirmEdit(${e.id})">Save</button>
+                <button class="btn btn-ghost btn-sm" onclick="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="entry">
+          <div>
+            ${e.folder ? `<span class="entry-folder-tag">${escHtml(e.folder)}</span>` : ''}
+            <div class="entry-prompt" title="Click to copy" onclick="copyPrompt(${e.id})">${escHtml(e.prompt)}</div>
+          </div>
+          <div class="entry-right">
+            <div class="entry-images">
+              ${(e.images||[]).filter(Boolean).map(img => `<img src="${img}" onclick="openLightbox('${img}')">`).join('')}
+            </div>
+            <div class="entry-meta">${e.date}</div>
+            <div class="entry-actions">
+              <button class="btn btn-ghost btn-sm" onclick="startEdit(${e.id})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Del</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function copyPrompt(id) {
+    const entry = data.entries.find(e => e.id === id);
+    if (!entry) return;
+    navigator.clipboard.writeText(entry.prompt).then(() => showToast('Copied!'));
+  }
+
+  // EXPORT / IMPORT
+  function exportData() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'prompt-library-backup.json';
+    a.click();
+    showToast('Exported!');
+  }
+
+  function importData(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (!confirm(`Import ${imported.entries?.length || 0} entries? This will merge with existing data.`)) return;
+        // Merge
+        const existingIds = new Set(data.entries.map(e => e.id));
+        const newEntries = (imported.entries || []).filter(e => !existingIds.has(e.id));
+        data.entries = [...data.entries, ...newEntries];
+        const existingFolders = new Set(data.folders);
+        (imported.folders || []).forEach(f => { if (!existingFolders.has(f)) data.folders.push(f); });
+        saveData();
+        renderFolders();
+        renderEntries();
+        showToast(`Imported ${newEntries.length} entries!`);
+      } catch(err) { showToast('Import failed'); }
+    };
+    reader.readAsText(file);
+  }
+
+  // LIGHTBOX
   function openLightbox(src) {
     document.getElementById('lightboxImg').src = src;
     document.getElementById('lightbox').classList.add('active');
@@ -477,36 +948,41 @@
     document.getElementById('lightbox').classList.remove('active');
   }
 
-  function renderEntries() {
-    const q = document.getElementById('searchBar').value.toLowerCase();
-    const filtered = entries.filter(e => e.prompt.toLowerCase().includes(q));
-    document.getElementById('countBadge').textContent = entries.length;
-    const list = document.getElementById('entriesList');
-    if (!filtered.length) {
-      list.innerHTML = '<div class="empty">No entries yet — paste a prompt above to get started.</div>';
-      return;
-    }
-    list.innerHTML = filtered.map(e => `
-      <div class="entry">
-        <div class="entry-prompt" title="Click to copy" onclick="copyPrompt(\`${e.prompt.replace(/`/g,'\\`')}\`)">${escHtml(e.prompt)}</div>
-        <div class="entry-right">
-          <div class="entry-images">
-            ${e.images.filter(Boolean).map(img => `<img src="${img}" onclick="openLightbox('${img}')" title="View full size">`).join('')}
-          </div>
-          <div class="entry-meta">${e.date}</div>
-          <div class="entry-actions">
-            <button class="btn btn-danger" onclick="deleteEntry(${e.id})">Delete</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
+  // TOAST
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
   }
 
+  // UTILS
   function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  function escAttr(s) {
+    return String(s).replace(/'/g,"\\'");
+  }
+
+  // KEYBOARD
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeLightbox();
+      closeModal('renameFolderModal');
+      if (editingId) cancelEdit();
+    }
+    if (e.key === 'Enter' && document.getElementById('renameFolderModal').classList.contains('active')) {
+      confirmRenameFolder();
+    }
+  });
+
+  // INIT
+  loadData();
+  renderFolders();
   renderEntries();
+  // Set default folder select to lastFolder
+  document.getElementById('folderSelect').value = data.lastFolder;
 </script>
 </body>
 </html>
