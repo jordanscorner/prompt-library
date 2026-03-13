@@ -345,7 +345,8 @@ function maybeAutoConnect(){
   if(!gapiReady||!gisReady)return;
   if(localStorage.getItem('driveConnected')==='1'){
     try{
-      tokenClient.requestAccessToken({prompt:'none'});
+      const hint=localStorage.getItem('driveEmail')||'';
+      tokenClient.requestAccessToken({prompt:'none',login_hint:hint});
     }catch(e){console.error('Auto-connect error:',e);}
   }
 }
@@ -936,7 +937,6 @@ function initGis(){
         console.log('Token callback:',resp);
         if(resp.error){
           console.error('Token error:',resp);
-          // silent reconnect failed — show connect button, don't auto-retry
           if(resp.error==='interaction_required'||resp.error==='access_denied'){
             setSyncStatus('disconnected');
             document.getElementById('driveBtn').textContent='Connect Drive';
@@ -944,6 +944,11 @@ function initGis(){
           }
           return;
         }
+        // store email for silent reconnect hint
+        try{
+          const payload=JSON.parse(atob(resp.access_token.split('.')[1]||'e30='));
+          if(payload.email)localStorage.setItem('driveEmail',payload.email);
+        }catch(e){}
         setSyncStatus('connected');
         document.getElementById('driveBtn').textContent='Disconnect';
         document.getElementById('syncBtn').style.display='';
@@ -959,7 +964,7 @@ function initGis(){
 // Poll for gapi and google objects in case onload callbacks don't fire
 function pollForApis(){
   if(typeof gapi!=='undefined'&&!gapiReady)initGapi();
-  if(typeof google!=='undefined'&&!gisReady)initGis();
+  if(typeof google!=='undefined'&&google.accounts&&!gisReady)initGis();
   if(!gapiReady||!gisReady)setTimeout(pollForApis,500);
 }
 setTimeout(pollForApis,500);
