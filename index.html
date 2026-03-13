@@ -341,30 +341,6 @@ function saveLocal(){
 }
 
 // ─── GOOGLE DRIVE ─────────────────────────────────────────────────
-function initGapi(){
-  gapi.load('client',async()=>{
-    await gapi.client.init({discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
-    gapiReady=true;
-    maybeAutoConnect();
-  });
-}
-
-function initGis(){
-  tokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:CLIENT_ID,
-    scope:SCOPES,
-    callback:(resp)=>{
-      if(resp.error){setSyncStatus('disconnected');return;}
-      setSyncStatus('connected');
-      document.getElementById('driveBtn').textContent='Disconnect';
-      document.getElementById('syncBtn').style.display='';
-      loadFromDrive();
-    }
-  });
-  gisReady=true;
-  maybeAutoConnect();
-}
-
 function maybeAutoConnect(){
   if(!gapiReady||!gisReady)return;
   if(localStorage.getItem('driveConnected')==='1'){
@@ -937,11 +913,46 @@ document.getElementById('lightbox').addEventListener('click',function(e){if(e.ta
 loadLocal();renderAll();
 
 // Load Google APIs
-window.gapiLoaded=()=>initGapi();
-window.gisLoaded=()=>initGis();
+function initGapi(){
+  gapi.load('client',async()=>{
+    try{
+      await gapi.client.init({discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
+      gapiReady=true;
+      console.log('GAPI ready');
+      maybeAutoConnect();
+    }catch(e){console.error('GAPI init error:',e);}
+  });
+}
+
+function initGis(){
+  try{
+    tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:CLIENT_ID,
+      scope:SCOPES,
+      callback:(resp)=>{
+        if(resp.error){console.error('Token error:',resp);setSyncStatus('disconnected');return;}
+        setSyncStatus('connected');
+        document.getElementById('driveBtn').textContent='Disconnect';
+        document.getElementById('syncBtn').style.display='';
+        loadFromDrive();
+      }
+    });
+    gisReady=true;
+    console.log('GIS ready');
+    maybeAutoConnect();
+  }catch(e){console.error('GIS init error:',e);}
+}
+
+// Poll for gapi and google objects in case onload callbacks don't fire
+function pollForApis(){
+  if(typeof gapi!=='undefined'&&!gapiReady)initGapi();
+  if(typeof google!=='undefined'&&!gisReady)initGis();
+  if(!gapiReady||!gisReady)setTimeout(pollForApis,500);
+}
+setTimeout(pollForApis,500);
 </script>
 
-<script src="https://apis.google.com/js/api.js?onload=gapiLoaded" async defer></script>
-<script src="https://accounts.google.com/gsi/client?onload=gisLoaded" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
