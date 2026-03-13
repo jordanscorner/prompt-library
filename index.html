@@ -926,10 +926,12 @@ function initGapi(){
 
 function initGis(){
   try{
+    console.log('initGis called, google.accounts:',typeof google?.accounts,'oauth2:',typeof google?.accounts?.oauth2);
     tokenClient=google.accounts.oauth2.initTokenClient({
       client_id:CLIENT_ID,
       scope:SCOPES,
       callback:(resp)=>{
+        console.log('Token callback:',resp);
         if(resp.error){console.error('Token error:',resp);setSyncStatus('disconnected');return;}
         setSyncStatus('connected');
         document.getElementById('driveBtn').textContent='Disconnect';
@@ -938,9 +940,9 @@ function initGis(){
       }
     });
     gisReady=true;
-    console.log('GIS ready');
+    console.log('GIS ready, tokenClient:',tokenClient);
     maybeAutoConnect();
-  }catch(e){console.error('GIS init error:',e);}
+  }catch(e){console.error('GIS init error:',e.message,e);}
 }
 
 // Poll for gapi and google objects in case onload callbacks don't fire
