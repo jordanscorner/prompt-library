@@ -367,26 +367,33 @@ function initGis(){
 
 function maybeAutoConnect(){
   if(!gapiReady||!gisReady)return;
-  // silent token refresh if previously connected
   if(localStorage.getItem('driveConnected')==='1'){
-    tokenClient.requestAccessToken({prompt:''});
+    try{tokenClient.requestAccessToken({prompt:''});}catch(e){}
   }
 }
 
 function handleDriveAuth(){
   const btn=document.getElementById('driveBtn');
   if(btn.textContent==='Disconnect'){
-    google.accounts.oauth2.revoke(gapi.client.getToken()?.access_token,()=>{});
-    gapi.client.setToken(null);
+    try{google.accounts.oauth2.revoke(gapi.client.getToken()?.access_token,()=>{});}catch(e){}
+    try{gapi.client.setToken(null);}catch(e){}
     localStorage.removeItem('driveConnected');
     setSyncStatus('disconnected');
     btn.textContent='Connect Drive';
     document.getElementById('syncBtn').style.display='none';
     return;
   }
-  if(!gapiReady||!gisReady){showToast('Still loading, try again...');return;}
-  tokenClient.requestAccessToken({prompt:'consent'});
-  localStorage.setItem('driveConnected','1');
+  waitForApis(()=>{
+    tokenClient.requestAccessToken({prompt:'consent'});
+    localStorage.setItem('driveConnected','1');
+  });
+}
+
+function waitForApis(cb,attempts=0){
+  if(gapiReady&&gisReady){cb();return;}
+  if(attempts>20){showToast('Google failed to load — check connection');return;}
+  showToast('Connecting...');
+  setTimeout(()=>waitForApis(cb,attempts+1),500);
 }
 
 function setSyncStatus(s){
