@@ -391,8 +391,12 @@ function handleDriveAuth(){
 
 function waitForApis(cb,attempts=0){
   if(gapiReady&&gisReady){cb();return;}
-  if(attempts>20){showToast('Google failed to load — check connection');return;}
-  showToast('Connecting...');
+  if(attempts>20){
+    showToast('Google failed to load — check connection');
+    console.error('gapiReady:',gapiReady,'gisReady:',gisReady,'gapi:',typeof gapi,'google:',typeof google);
+    return;
+  }
+  if(attempts===0)showToast('Connecting...');
   setTimeout(()=>waitForApis(cb,attempts+1),500);
 }
 
