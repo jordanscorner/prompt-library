@@ -344,7 +344,9 @@ function saveLocal(){
 function maybeAutoConnect(){
   if(!gapiReady||!gisReady)return;
   if(localStorage.getItem('driveConnected')==='1'){
-    try{tokenClient.requestAccessToken({prompt:''});}catch(e){}
+    try{
+      tokenClient.requestAccessToken({prompt:'none'});
+    }catch(e){console.error('Auto-connect error:',e);}
   }
 }
 
@@ -932,7 +934,16 @@ function initGis(){
       scope:SCOPES,
       callback:(resp)=>{
         console.log('Token callback:',resp);
-        if(resp.error){console.error('Token error:',resp);setSyncStatus('disconnected');return;}
+        if(resp.error){
+          console.error('Token error:',resp);
+          // silent reconnect failed — show connect button, don't auto-retry
+          if(resp.error==='interaction_required'||resp.error==='access_denied'){
+            setSyncStatus('disconnected');
+            document.getElementById('driveBtn').textContent='Connect Drive';
+            document.getElementById('syncBtn').style.display='none';
+          }
+          return;
+        }
         setSyncStatus('connected');
         document.getElementById('driveBtn').textContent='Disconnect';
         document.getElementById('syncBtn').style.display='';
